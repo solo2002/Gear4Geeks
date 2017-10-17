@@ -1,0 +1,34 @@
+Raspberry Pi Setup
+
+1.	Grab latest pi image
+2. 	Download Etcher
+3. 	Flash iso to SD
+4.  Connect Pi to Monitor/Keyboard for first login
+
+User: pi
+PW: raspberry
+
+For SSH
+1. Enable SSH from the Interface tab of the Preference menu on Pi
+2. Download Putty on PC
+3. Connect to Pi hotspot, shared wifi, or ethernet
+4. Find IP ($hostname -I)
+5. Connect and login 
+
+For VCN:
+1. Verify RealVCN is up-to-date and installed on pi
+	sudo apt-get update
+	sudo apt-get install realvnc-vnc-server realvnc-vnc-viewer
+2. Enable VCN from the Interface tab of the Preference menu on Pi
+3. Download RealVCN (viewer) on PC
+4. Connect to Pi hotspot, shared wifi, or ethernet
+5. Find IP ($hostname -I) or start up server ($vncserver) if headless.
+6. Connect and login
+
+Arduino Pi
+1. Download arduino IDE
+2. Find arduino port via $ls /dev/tty*
+3. Using pySerial (example pi side), 
+	import serial
+	ser = serial.Serial('port', 9600)
+	ser.write('input') 
