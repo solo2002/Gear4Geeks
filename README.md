@@ -2,13 +2,13 @@
 
 ## File Structure
 
-2017-October
-* scripts
-  * [placeholder] 
-* sketches
-  *  [placeholder]
-Resources
-* Rspberry Pi Setup
+* 2017-October
+  * scripts
+    * [placeholder] 
+  * sketches
+    *  [placeholder]  
+* Resources
+  * Raspberry Pi Setup
 
 README.md
 .gitattributes
