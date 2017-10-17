@@ -9,10 +9,9 @@
     *  [placeholder]  
 * Resources
   * Raspberry Pi Setup
-
-README.md
-.gitattributes
-[.gitignore]
+* README.md
+* .gitattributes
+* [.gitignore]
 
 ## Git
 
