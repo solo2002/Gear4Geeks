@@ -23,6 +23,9 @@ from time import sleep, time
 def clear():
     os.system('cls' if os.name=='nt' else 'clear')
 
+def response(a,y):
+    return 1.0 / a * math.log((1 - y)/(1 + y))
+
 class PS4Controller(object):
     """Class representing the PS4 controller. Pretty straightforward functionality."""
 
