@@ -4,6 +4,13 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_MS_PWMServoDriver.h"
+#include <SPI.h>
+#include <MFRC522.h>
+
+constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
+constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
@@ -39,6 +46,10 @@ void setup() {
 
   AFMS.begin();  // create with the default frequency 1.6KHz
   //AFMS.begin(1000);  // OR with a different frequency, say 1KHz
+   SPI.begin();            // Init SPI bus
+    mfrc522.PCD_Init(); // Init MFRC522 card
+
+
 }
 
 void loop() {
@@ -62,6 +73,9 @@ void loop() {
           Serial.print("Debug set to ");
           Serial.println(Debug);
         }
+        break;
+      case 'i': // Print motors status
+        readRFID();
         break;
       case 'p': // Print motors status
         if (CntrlMode == 0) {
@@ -224,6 +238,22 @@ void print_state(void) {
   }
   Serial.print("\t");
   Serial.println(RSpd);
+}
+void readRFID(){
+    SPI.begin();            // Init SPI bus
+    mfrc522.PCD_Init(); // Init MFRC522 card
+    
+    // Look for new cards
+    if ( ! mfrc522.PICC_IsNewCardPresent()) {
+        return;
+    }
+    // Select one of the cards
+    if ( ! mfrc522.PICC_ReadCardSerial()) {
+        return;
+    }
+    // Dump debug info about the card.
+    mfrc522.PICC_DumpDetailsToSerial(&(mfrc522.uid));
+    mfrc522.PICC_HaltA();
 }
 
 void stop(void) { // Stop
