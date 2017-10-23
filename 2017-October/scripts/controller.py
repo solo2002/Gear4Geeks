@@ -44,7 +44,7 @@ class PS4Controller(object):
         pygame.joystick.init()
         self.controller = pygame.joystick.Joystick(0)
         self.controller.init()
-        self.ser = serial.Serial('COM5', 9600)
+        self.ser = serial.Serial('COM4', 9600)
 
     def listen(self):
         """Listen for events to happen"""
@@ -88,6 +88,9 @@ class PS4Controller(object):
         # Parameters for joystick control mode
         speed_l = 0
         speed_r = 0
+        prev_speed_l = 0
+        prev_speed_r = 0
+        prev_btn = False
 
         while True:
             prev = self.axis_data
@@ -104,10 +107,6 @@ class PS4Controller(object):
                     self.button_data[event.button] = False
                 elif event.type == pygame.JOYHATMOTION:
                     self.hat_data[event.hat] = event.value
-
-                # Insert your code on what you would like to happen for each event here!
-                # In the current setup, I have the state simply printing out to the screen.
-                #if(self.axis_data != prev):
 
             # check for exit command
             if self.button_data[9] or self.key_data[pygame.QUIT] or self.key_data[pygame.K_ESCAPE]:
@@ -137,6 +136,7 @@ class PS4Controller(object):
                 mode_switch = "k"
 
             if self.key_data[pygame.K_2] and mode_switch != "j":
+                print("Joystick mode: ON")
                 mode_switch = "j"
 
             if mode_switch == "k": # keyboard control mode
@@ -193,50 +193,31 @@ class PS4Controller(object):
                     self.ser.write(b'slze')
 
             if mode_switch == "j": # joystick control mode
+                if self.ser.in_waiting:
+                    print (self.ser.readline())
 
-                if (self.axis_data[1] < -0.03 and self.axis_data[1] > -0.8) or (self.axis_data[1] > 0.03 and self.axis_data[1] < 0.8):
-                    if speed_l < 255:
-                        speed_l = speed_l + 1
-                elif self.axis_data[1] >= 0.8:
-                    if speed_l < 255:
-                        speed_l = speed_l + 10
-                    if speed_l > 255:
-                        speed_l = 255
-                elif self.axis_data[1] <= -0.8:
-                    if speed_l < 255:
-                        speed_l = speed_l + 10
-                    if speed_l > 255:
-                        speed_l = 255
-                elif self.axis_data[1] >= -0.03 and self.axis_data[1] <= 0.03:
-                    speed_l = 0
+                prev_speed_l = speed_l
+                prev_speed_r = speed_r
+                speed_threshold = 1
 
-                if (self.axis_data[3] < -0.03 and self.axis_data[3] > -0.8) or (self.axis_data[3] > 0.03 and self.axis_data[3] < 0.8):
-                    if speed_r < 255:
-                        speed_r = speed_r + 1
-                elif self.axis_data[3] >= 0.8:
-                    if speed_r < 255:
-                        speed_r = speed_r + 10
-                    if speed_r > 255:
-                        speed_r = 255
-                elif self.axis_data[3] <= -0.8:
-                    if speed_r < 255:
-                        speed_r = speed_r + 10
-                    if speed_r > 255:
-                        speed_r = 255
-                elif self.axis_data[3] >= -0.03 and self.axis_data[3] <= 0.03:
-                    speed_r = 0
+                #simplified linear mapping for controller
+                speed_l = int(math.fabs(self.axis_data[1]*255))
+                speed_r = int(math.fabs(self.axis_data[3]*255))
 
-                if self.axis_data[1] < -0.03:
+                #print("curr_l: {0}, perv_l: {1}, curr_r:{2}, perv_r:{3}".format(speed_l, prev_speed_l, speed_r,prev_speed_r))
+
+                if self.axis_data[1] < -0.03 and math.fabs(speed_l - prev_speed_l) > speed_threshold:
                     str_lf = "slf" + str(speed_l) + "e"
                     self.ser.write(str_lf.encode())
-                elif self.axis_data[1] > 0.03:
+                elif self.axis_data[1] > 0.03 and math.fabs(speed_l - prev_speed_l) > speed_threshold:
                     str_lb = "slb" + str(speed_l) + "e"
                     self.ser.write(str_lb.encode())
 
-                if self.axis_data[3] < -0.03:
+
+                if self.axis_data[3] < -0.03 and math.fabs(speed_r - prev_speed_r) > speed_threshold:
                     str_rf = "srf" + str(speed_r) + "e"
                     self.ser.write(str_rf.encode())
-                elif self.axis_data[3] > 0.03:
+                elif self.axis_data[3] > 0.03 and math.fabs(speed_r - prev_speed_r) > speed_threshold:
                     str_rb = "srb" + str(speed_r) + "e"
                     self.ser.write(str_rb.encode())
 
@@ -246,16 +227,17 @@ class PS4Controller(object):
                     self.ser.write(b'srze')
                     self.ser.write(b'slze')
 
+                #Logic to call RFID scan only once per click of R1 button
+                if(prev_btn != self.button_data[5]):
+                    print("Scanning for RFID Card")
+                    prev_btn = self.button_data[5]
+                    if self.button_data[5] :
+                        self.ser.write("i".encode())
 
-            # clear()
-            # pprint.pprint(self.button_data)
-            # pprint.pprint(self.axis_data)
-            # pprint.pprint(self.hat_data)
-
-
-
-
-
+                # clear()
+                # pprint.pprint(self.button_data)
+                # pprint.pprint(self.axis_data)
+                # pprint.pprint(self.hat_data)
 
 if __name__ == "__main__":
     ps4 = PS4Controller()
